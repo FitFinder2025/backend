@@ -9,6 +9,8 @@ from flask_cors import CORS
 from chromadb.utils.embedding_functions import OpenCLIPEmbeddingFunction
 from mongodb_operations import add_item_to_closet, get_closet_item_count, search 
 from perplexity import perplexity  
+from mongodb_operations import closet_collection
+
 
 embedding_function = OpenCLIPEmbeddingFunction()
 
@@ -109,6 +111,16 @@ def plexit():
             os.remove(file_path)  # Clean up the temporary file
     return jsonify({"error": "Invalid file type"}), 400
     
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/get_closet', methods=['GET'])
+def get_closet():
+    items = closet_collection.find({}, {"_id": 0, "file_path": 1})
+    file_paths = [item['file_path'] for item in items]
+    return jsonify(file_paths)
 
 
 if __name__ == '__main__':
