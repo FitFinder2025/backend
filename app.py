@@ -47,7 +47,7 @@ def search_closet():
 
 @app.route('/search/ext', method=['POST'])
 def search_closet_extension():
-    pass
+    return jsonify({"token": "000000000000"})
 
 @app.route('/closet', methods=['POST'])
 def upload_closet():
