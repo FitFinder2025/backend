@@ -1,0 +1,6 @@
+flask
+chromadb
+werkzeug
+google-genai
+pillow
+open-clip-torch
