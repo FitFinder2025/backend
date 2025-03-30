@@ -3,7 +3,7 @@ from werkzeug.utils import secure_filename
 from config import UPLOAD_FOLDER, ALLOWED_EXTENSIONS
 from utils import allowed_file
 import os
-from gemini import get_image_description, get_image_color
+from gemini import get_image_description, get_image_color, get_json
 from crop import analyze_clothing_from_image
 from flask_cors import CORS
 from chromadb.utils.embedding_functions import OpenCLIPEmbeddingFunction
@@ -87,6 +87,7 @@ def analyze_clothing():
             os.remove(image_path) # Clean up the temporary image
     return jsonify({"error": "Invalid image file type"})
 
+
 @app.route("/plex", methods=["POST"])
 def plexit():
     if 'file' not in request.files:
@@ -103,14 +104,18 @@ def plexit():
             print(f"Generated description for Perplexity: {description}")
 
             perplexity_response = perplexity(description)
-            return jsonify(perplexity_response)
+            print(f"Perplexity Response (String): {perplexity_response}") # For debugging
+
+            structured_response = get_json(perplexity_response)
+            print(f"Structured JSON Response: {structured_response}") # For debugging
+
+            return jsonify(structured_response)
 
         except Exception as e:
             return jsonify({"error": f"An error occurred: {e}"}), 500
         finally:
             os.remove(file_path)  # Clean up the temporary file
     return jsonify({"error": "Invalid file type"}), 400
-    
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -121,6 +126,7 @@ def get_closet():
     items = closet_collection.find({}, {"_id": 0, "file_path": 1})
     file_paths = [item['file_path'] for item in items]
     return jsonify(file_paths)
+
 
 
 if __name__ == '__main__':

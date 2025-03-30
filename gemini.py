@@ -117,3 +117,54 @@ def get_image_color(image_path):
         print(f"Error decoding JSON in get_image_color: {e}")
         print(f"Raw response text: {response.text}")
         return None
+    
+def get_json(string):
+    client = genai.Client(api_key=api_key)
+    model_gem = "gemini-2.0-flash"
+    generate_content_config = types.GenerateContentConfig(
+        response_mime_type="application/json",
+        response_schema=genai.types.Schema(
+    type=genai.types.Type.ARRAY,
+    items=genai.types.Schema(
+        type=genai.types.Type.OBJECT,
+        required=["clothing_name", "price", "sustainibility_index", "purchase_link"],
+        properties={
+            "clothing_name": genai.types.Schema(type=genai.types.Type.STRING),
+            "price": genai.types.Schema(type=genai.types.Type.INTEGER),
+            "sustainibility_index": genai.types.Schema(type=genai.types.Type.INTEGER),
+            "purchase_link": genai.types.Schema(type=genai.types.Type.STRING),
+        },
+    ),
+),  # Use the correct schema here
+    )
+    prompt = f"""You will be given a string containing information about clothing items. Please structure this information into a valid JSON array of objects with the following format:
+
+[
+  {{
+    "clothing_name": "...",
+    "price": ...,
+    "sustainibility_index": ...,
+    "purchase_link": "..."
+  }},
+  // ... more items if available
+]
+
+The input string is: "{string}"
+
+Please ensure the output is valid JSON and do not include any Markdown formatting like backticks. If the input string does not contain enough information to populate all items, just include the items that are present as separate objects in the array. Make your best effort to extract the relevant information for each field.
+"""
+    try:
+        response = client.models.generate_content(
+            model=model_gem,
+            contents=[prompt],
+            config=generate_content_config
+        )
+        json_output = json.loads(response.text)
+        return json_output
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON in get_json: {e}")
+        print(f"Raw response text from get_json: {response.text}")
+        return {"error": "Failed to structure output as JSON"}
+    except Exception as e:
+        print(f"An error occurred in get_json: {e}")
+        return {"error": f"An error occurred while structuring the output: {e}"}
