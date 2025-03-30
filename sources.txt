@@ -1,0 +1,7 @@
+Citations:-
+
+openai(CLIP)
+chromaDb
+google@gen-ai
+mongodb(pymongo used in flask)
+pillow
