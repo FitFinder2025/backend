@@ -47,10 +47,6 @@ def search_closet():
         return jsonify(results)
     return jsonify({"error": "Invalid query image file type"})
 
-@app.route('/search/ext', method=['POST'])
-def search_closet_extension():
-    return jsonify({"token": "000000000000"})
-
 @app.route('/closet', methods=['POST'])
 def upload_closet():
     if 'file' not in request.files:
