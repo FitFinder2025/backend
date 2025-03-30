@@ -8,7 +8,7 @@ from crop import analyze_clothing_from_image
 from flask_cors import CORS
 from chromadb.utils.embedding_functions import OpenCLIPEmbeddingFunction
 from mongodb_operations import add_item_to_closet, get_closet_item_count, search 
-
+from perplexity import perplexity  
 
 embedding_function = OpenCLIPEmbeddingFunction()
 
@@ -67,9 +67,6 @@ def upload_closet():
     return "Invalid file type"
 
 
-
-
-
 @app.route('/crop', methods=['POST'])
 def analyze_clothing():
     if 'image' not in request.files:
@@ -88,7 +85,29 @@ def analyze_clothing():
             os.remove(image_path) # Clean up the temporary image
     return jsonify({"error": "Invalid image file type"})
 
+@app.route("/plex", methods=["POST"])
+def plexit():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        try:
+            description, cloth_type, color = get_image_description(file_path)
+            print(f"Generated description for Perplexity: {description}")
 
+            perplexity_response = perplexity(description)
+            return jsonify(perplexity_response)
+
+        except Exception as e:
+            return jsonify({"error": f"An error occurred: {e}"}), 500
+        finally:
+            os.remove(file_path)  # Clean up the temporary file
+    return jsonify({"error": "Invalid file type"}), 400
     
 
 
